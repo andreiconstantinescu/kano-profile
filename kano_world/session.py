@@ -218,7 +218,8 @@ class KanoWorldSession(object):
         attachment_files = [
             ('cover', 'png'),
             ('resource', 'tar.gz'),
-            ('sample', 'mp3')
+            ('sample', 'mp3'),
+            ('attachment', 'py')
         ]
 
         for attachment in attachment_files:
