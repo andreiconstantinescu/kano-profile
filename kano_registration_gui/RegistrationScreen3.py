@@ -23,6 +23,26 @@ from kano.logging import logger
 from kano.utils import run_bg
 from kano_avatar.paths import AVATAR_DEFAULT_LOC, AVATAR_ENV_SHIFTED
 
+# For stopping the registration process after 30 seconds
+import signal
+from contextlib import contextmanager
+
+
+class TimeoutException(Exception):
+    pass
+
+
+@contextmanager
+def time_limit(seconds):
+    def signal_handler(signum, frame):
+        raise TimeoutException("Timed out!")
+    signal.signal(signal.SIGALRM, signal_handler)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+
 
 # Get emails and show the terms and conditions
 class RegistrationScreen3(Gtk.Box):
@@ -119,10 +139,28 @@ class RegistrationScreen3(Gtk.Box):
                     )
                     )
 
-        success, text = register_(email, username, password,
-                                  date_year, date_month, date_day,
-                                  secondary_email=secondary_email)
+        try:
+            with time_limit(30):
+                success, text = register_(email, username, password,
+                                          date_year, date_month, date_day,
+                                          secondary_email=secondary_email)
+        except TimeoutException, msg:
+            logger.debug(msg)
+            kdialog = KanoDialog(
+                "The server timed out!",
+                "Have another go.  If it keeps failing, try again another time.",
+                parent_window=self.win
+            )
+            kdialog.run()
 
+            self.page_control.enable_buttons()
+            self.data_screen.enable_all()
+            self.win.get_window().set_cursor(None)
+
+        else:
+            self.deal_with_response_from_server(success, text)
+
+    def deal_with_response_from_server(self, success, text):
         if not success:
             if text.strip() == "Cannot register, problem: Username already registered":
 
@@ -139,6 +177,11 @@ class RegistrationScreen3(Gtk.Box):
 
         else:
             logger.info('registration successful')
+
+            # TODO: Get birthday again.  Could this cause a bug?
+            date_year = self.win.data["year"]
+            date_month = self.win.data["month"]
+            date_day = self.win.data["day"]
 
             bday_date = str(datetime.date(date_year, date_month, date_day))
             save_profile_variable('birthdate', bday_date)
@@ -218,9 +261,6 @@ class RegistrationScreen3(Gtk.Box):
         title = "You don't have internet!"
         description = "Connect to WiFi and try again."
         rv = self.connect_dialog(title, description)
-
-        # the dialog should close here
-        logger.debug("dialog should close here")
 
         if rv == "connect":
             # launch wifi setup
