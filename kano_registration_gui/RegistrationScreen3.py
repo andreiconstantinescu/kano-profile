@@ -140,15 +140,15 @@ class RegistrationScreen3(Gtk.Box):
                     )
 
         try:
-            with time_limit(30):
+            with time_limit(60):
                 success, text = register_(email, username, password,
                                           date_year, date_month, date_day,
                                           secondary_email=secondary_email)
         except TimeoutException, msg:
             logger.debug(msg)
             kdialog = KanoDialog(
-                "The server timed out!",
-                "Have another go.  If it keeps failing, try again another time.",
+                "Hmm...",
+                "We sent your profile to Kano HQ, but it might have gotten lost in cyber-space. Try again in a few minutes.",
                 parent_window=self.win
             )
             kdialog.run()
