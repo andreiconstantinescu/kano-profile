@@ -98,7 +98,9 @@ class GetData2(DataTemplate):
         '''widget is the password entry
         '''
         password = self.password_entry.get_text()
-        if len(password) < 6:
+        if len(password) == 0:
+            self.password_entry.label_success("")
+        elif len(password) < 6:
             self.password_entry.label_success("is too short", "fail")
         else:
             self.password_entry.label_success("looks good!", "success")
@@ -110,7 +112,9 @@ class GetData2(DataTemplate):
         '''
 
         username = self.username_entry.get_text()
-        if check_username(username):
+        if len(username) == 0:
+            self.username_entry.label_success("")
+        elif check_username(username):
             self.username_entry.label_success("is valid", "success")
         else:
             self.username_entry.label_success("is invalid", "fail")
@@ -198,15 +202,15 @@ class GetData3(DataTemplate):
 
         # If the user is younger than 14, ask for both Guardian and
         # user email, but the guardian email is compulsory
-        if age < 14:
+        if age <= 13:
             self.email_entry = LabelledEntry(
-                "Guardian's Email (required)", email
+                "Parent's Email (required)", email
             )
             self.email_entry.connect('key-release-event',
                                      self.widgets_full)
 
             self.secondary_email_entry = LabelledEntry(
-                "Email (optional)", secondary_email
+                "Your Email (optional)", secondary_email
             )
             self.secondary_email_entry.connect(
                 'key-release-event', self.widgets_full
@@ -217,7 +221,7 @@ class GetData3(DataTemplate):
 
         # Otherwise, there is only one compulsory email
         else:
-            self.email_entry = LabelledEntry("Email", email)
+            self.email_entry = LabelledEntry("Your Email (required)", email)
             self.email_entry.connect('key-release-event', self.widgets_full)
             self.secondary_email_entry = None
             box.pack_start(self.email_entry, False, False, 5)
