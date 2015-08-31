@@ -34,6 +34,9 @@ if __name__ == '__main__' and __package__ is None:
 import kano_i18n.init
 kano_i18n.init.install('kano-tutorial', LOCALE_PATH)
 
+from kano.network import is_internet
+from kano.utils import run_cmd
+
 from kano_profile_gui.character_screens import CharacterDisplay
 from kano_profile_gui.badge_screen import BadgeScreen
 from kano_profile_gui.QuestList import QuestList
@@ -163,6 +166,9 @@ class MainWindow(ApplicationWindow):
 
 if __name__ == '__main__':
     args = docopt.docopt(__doc__)
+
+    if is_internet():
+        run_cmd('sudo kano-content sync')
 
     start_from = args['--screen'] if args['--screen'] != 'none' else None
     mw = MainWindow(start_from)
